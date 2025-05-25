@@ -2,12 +2,67 @@
 <html>
     <head>
         <title>Pigeon Services</title>
+        <link rel="icon" type="image/x-icon" href="pearto.webp">
+        <style>
+            body {
+                background-color: #36393e;
+            }
+            p {
+                color: white;
+            }
+        </style>
     </head>
+    <!--EDIT THIS YOU GOOF -->
     <body>
-        <h1 style="font:serif;">Pigeon Services</h1>
-        <form action="/submit" method="GET"> 
-        <input type="text" name="msg">
-        <input type="submit" value="Send">
-    </form>
+        <h1 style="font:serif;color:white;" name="title">Pigeon Services</h1>
+        <p> </p>
+        <p> </p>
+        <p> </p>
+        <p> </p>
+        <p> </p>
+        <p> </p>
+        <p> </p>
+        <p> </p>
+        <p> </p>
+        <p> </p>
+        
+        
+    <!-- INPUTS/PHP -->     
+
+        <input type="text" id="dataInput" style="width:500px"> </input>
+        <button id="submitBtn" style="display:none;"></button>
+
+    
+        <!--- JAVASCRIPT CORNER -->
+        <script>
+            const message = document.getElementsByTagName("text_msg");
+
+                function SubmitHandle() {
+            const value = document.getElementById("dataInput").value;
+
+            fetch("/submit", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ data: value })
+            })
+            .then(response => response.text())
+            .then(text => {
+            console.log("Server said:", text);
+            alert("Submitted!");
+            });
+        }
+
+        document.getElementById("submitBtn").addEventListener("click", SubmitHandle);
+    </script>
+    <noscript> 
+        <h1> <b>USE JAVASCRIPT GODDAMMIT! </b></h1>
+    </noscript>
+        
     </body>
-</html>
+
+
+
+
+</html> 

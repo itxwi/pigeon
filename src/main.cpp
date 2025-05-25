@@ -6,7 +6,7 @@
 const char* ssid = "Pigeon";
 WebServer server(80); // Port 80 http server
 
-void handleRoot() { // At webpage http://198.162.4.1/
+void handleRoot() { // At webpage http://192.168.4.1/
 
   File file = SPIFFS.open("/index.html", "r");
   if (!file){
@@ -17,10 +17,12 @@ void handleRoot() { // At webpage http://198.162.4.1/
 
 }
 
-void handleSubmit(){
-  //invoked when a form is submited
+void handleSubmit() {
+  String value = server.arg("data"); // assuming <input name="data">
   Serial.println("invoked event");
+  Serial.println("Received: " + value);
 }
+
 
 void setup() {
   delay(5);
@@ -41,7 +43,7 @@ void setup() {
   server.on("/", handleRoot);
   server.begin();
 
-  server.on("/submit", handleSubmit);
+  server.on("/submit",HTTP_POST, handleSubmit);
 
   Serial.println(WiFi.softAPIP());
 }
