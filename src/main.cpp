@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <WebServer.h>
 #include <SPIFFS.h>
+#include <ArduinoJson.h>
 #include <WiFi.h>
 
 const char* ssid = "Pigeon";
@@ -18,9 +19,20 @@ void handleRoot() { // At webpage http://192.168.4.1/
 }
 
 void handleSubmit() {
-  String value = server.arg("data"); // assuming <input name="data">
-  Serial.println("invoked event");
-  Serial.println("Received: " + value);
+  String json = server.arg("plain");  // Raw body of POST request
+  Serial.println("Received JSON: " + json);
+
+  DynamicJsonDocument doc(1024);
+  DeserializationError error = deserializeJson(doc, json);
+
+  if (error) {
+    Serial.print("deserializeJson() failed: ");
+    Serial.println(error.c_str());
+    return;
+  }
+
+  String value = doc["data"];
+  Serial.println("Received data: " + value);
 }
 
 

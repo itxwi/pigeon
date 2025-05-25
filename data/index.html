@@ -26,36 +26,40 @@
         <p> </p>
         <p> </p>
         
+
+        <input type="text" id="dataInput" style="width:500px" enterkeyhint="send" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"> </input>
+
+       <script>
         
-    <!-- INPUTS/PHP -->     
+            function SubmitHandle() {
 
-        <input type="text" id="dataInput" style="width:500px"> </input>
-        <button id="submitBtn" style="display:none;"></button>
+                alert("what are you doing");
+                const value = document.getElementById("dataInput").value;
+                fetch("/submit", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ data: value })
+                    })
+                    .then(response => response.text())
+                    .then(text => {
+                    console.log("Server said:", text);
+                    alert("Submitted!");
+                    })
+                    .catch(err => console.error("Fetch failed:", err));
+                }
 
-    
-        <!--- JAVASCRIPT CORNER -->
-        <script>
-            const message = document.getElementsByTagName("text_msg");
+                document.getElementById("dataInput").addEventListener("keydown", function(event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    SubmitHandle();
+                }
+                });
 
-                function SubmitHandle() {
-            const value = document.getElementById("dataInput").value;
 
-            fetch("/submit", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ data: value })
-            })
-            .then(response => response.text())
-            .then(text => {
-            console.log("Server said:", text);
-            alert("Submitted!");
-            });
-        }
-
-        document.getElementById("submitBtn").addEventListener("click", SubmitHandle);
     </script>
+
     <noscript> 
         <h1> <b>USE JAVASCRIPT GODDAMMIT! </b></h1>
     </noscript>
