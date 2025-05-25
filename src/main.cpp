@@ -6,7 +6,7 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-
+#include <WebSocketsServer.h>
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -37,6 +37,7 @@ void screenPrint(int x, int y, String text,bool debug = false){
 //Website stuff//
 //==============//
 const char* ssid = "Pigeon";
+WebSocketsServer webSocket = WebSocketsServer(81);
 WebServer server(80); // Port 80 http server
 
 void handleRoot() { // At webpage http://192.168.4.1/
@@ -52,10 +53,12 @@ void handleRoot() { // At webpage http://192.168.4.1/
 
 void handleSubmit() {
   String json = server.arg("plain");  // Raw body of POST request
-  Serial.println("Received JSON: " + json);
+  //Serial.println("Received JSON: " + json);
 
   DynamicJsonDocument doc(1024);
   DeserializationError error = deserializeJson(doc, json);
+
+  IPAddress senderIP = server.client().remoteIP();
 
   if (error) {
     Serial.print("deserializeJson() failed: ");
@@ -64,7 +67,7 @@ void handleSubmit() {
   }
 
   String value = doc["data"];
-  Serial.println("Received data: " + value);
+  Serial.println(senderIP.toString() + " " + value);
   server.send(200, "text/plain", "pigeon recieved");
 
 }
@@ -96,10 +99,24 @@ void setup() {
   display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS);
   display.clearDisplay();
   pinMode(34,INPUT);
+
+  webSocket.begin();
+  webSocket.onEvent([](uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
+    if (type == WStype_CONNECTED) {
+        IPAddress ip = webSocket.remoteIP(num);
+        Serial.printf("Client %u connected from %s\n", num, ip.toString().c_str());
+    } else if (type == WStype_DISCONNECTED) {
+        Serial.printf("Client %u disconnected\n", num);
+    } else if (type == WStype_TEXT) {
+        Serial.printf("Received message from %u: %s\n", num, payload);
+    }
+});
+
 }
 
 void loop() {
   server.handleClient();
+  webSocket.loop();
 
 
   //OLED
@@ -126,13 +143,13 @@ void loop() {
     Serial.println("You pressed a button!");
     if (espMode == "SoftAP"){
       espMode = "HardAP";
-      Serial.println("Switched to HardAP!");
       display.clearDisplay();
     }
     else{
       espMode = "SoftAP";
-      Serial.println("Switched to SoftAP!");
       display.clearDisplay();
+      Serial.println("global broadcasted");
+      webSocket.broadcastTXT("CALL:doSomething");
     }
   }
 

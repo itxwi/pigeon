@@ -71,6 +71,37 @@
                 }
             });
         }
+
+
+
+        
+        function doSomething() {
+            console.log("Function was invoked from ESP32!");
+            // You can put any JS logic here (update UI, fetch data, etc)
+        }
+
+        const socket = new WebSocket("ws://" + location.hostname + ":81/");
+
+        socket.onopen = function() {
+            console.log("WebSocket connected!");
+        };
+
+        socket.onerror = function(error) {
+            console.error("WebSocket Error:", error);
+        };
+
+        socket.onclose = function() {
+            console.warn("WebSocket connection closed");
+        };
+
+        socket.onmessage = function(event) {
+            const msg = event.data;
+            console.log("WS Message:", msg);
+            if (msg === "CALL:doSomething") {
+                doSomething();
+            }
+        };
+
     </script>
 
     <noscript> 
