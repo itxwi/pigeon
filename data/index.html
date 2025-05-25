@@ -12,7 +12,8 @@
             }
         </style>
     </head>
-    <!--EDIT THIS YOU GOOF -->
+  
+
     <body>
         <h1 style="font:serif;color:white;" name="title">Pigeon Services</h1>
         <p> </p>
@@ -27,37 +28,49 @@
         <p> </p>
         
 
-        <input type="text" id="dataInput" style="width:500px" enterkeyhint="send" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"> </input>
+    <input type="text" id="dataInput" style="width:500px" enterkeyhint="send" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"> </input>
 
        <script>
-        
-            function SubmitHandle() {
-
-                alert("what are you doing");
-                const value = document.getElementById("dataInput").value;
-                fetch("/submit", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ data: value })
-                    })
-                    .then(response => response.text())
-                    .then(text => {
-                    console.log("Server said:", text);
-                    alert("Submitted!");
-                    })
-                    .catch(err => console.error("Fetch failed:", err));
+            async function SubmitHandle() {
+                const dataInput = document.getElementById("dataInput");
+                if (!dataInput) {
+                    console.error("Input element 'dataInput' not found.");
+                    return;
                 }
 
-                document.getElementById("dataInput").addEventListener("keydown", function(event) {
+                const value = dataInput.value;
+
+                try {
+
+
+                    const response = await fetch("/submit", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ data: value })
+                    });
+                    const text = await response.text();
+                    
+                    console.log(value);
+
+                    document.getElementById('dataInput').value = ''; // Clear the input after successful submission
+
+                } catch (err) {
+                    console.error("Fetch failed:", err);
+                }
+            }
+
+            const dataInput = document.getElementById("dataInput");
+            if (dataInput) {
+            dataInput.addEventListener("keydown", function(event) {
+                // Check if the pressed key is 'Enter'
                 if (event.key === "Enter") {
-                    event.preventDefault();
-                    SubmitHandle();
+                    event.preventDefault(); // Prevent the default action (e.g., new line in some text areas)
+                    SubmitHandle(); // Invoke the submit function
                 }
-                });
-
-
+            });
+        }
     </script>
 
     <noscript> 
@@ -65,8 +78,4 @@
     </noscript>
         
     </body>
-
-
-
-
 </html> 
