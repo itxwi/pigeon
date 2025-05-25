@@ -6,43 +6,71 @@
         <style>
             body {
                 background-color: #36393e;
+                font-family: sans-serif;
             }
             p {
                 color: white;
+                border: solid black;
+                height: 20px;
+                width: 500px;
+                background: grey;
+                margin: 2px;
+                padding-left: 5px;
+            }
+            div.texts {
+                height: 300px;
+                border: 3px outset black;
+                overflow-x: hidden;
+                overflow-y: scroll;
+                margin-bottom: 60px;
+            }
+            form {
+                position: fixed;
+                bottom: 10px;
+                background: #2f3136;
+                padding: 10px;
+                width: 100%;
+            }
+            input[type="text"] {
+                width: 500px;
             }
         </style>
     </head>
-  
 
     <body>
-        <h1 style="font:serif;color:white;" name="title">Pigeon Services</h1>
-        <p> </p>
-        <p> </p>
-        <p> </p>
-        <p> </p>
-        <p> </p>
-        <p> </p>
-        <p> </p>
-        <p> </p>
-        <p> </p>
-        <p> </p>
-        
+        <h1 style="color:white;">Pigeon Services</h1>
 
-    <input type="text" id="dataInput" style="width:500px" enterkeyhint="send" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"> </input>
+        <div class="texts" id="chatBox">
+            <p>Welcome to Pigeon!</p>
+            <p>Pigeon is a software that lets you chat!</p>
+            <p>But the catch is...</p>
+            <p>It is in a local area</p>
+            <p>It allows for privacy</p>
+        </div>
 
-       <script>
+        <form id="text_msg">
+            <input type="text" id="dataInput" maxlength="250" minlength="1" required>
+            <input type="submit" value="Submit">
+        </form>
+
+        <script>
+            const chatBox = document.getElementById("chatBox");
+
+            // Add a new <p> element with a message
+            function addMessage(text) {
+                const para = document.createElement("p");
+                para.innerText = text;
+                chatBox.appendChild(para);
+                chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll
+            }
+
+            // Send message to ESP32 and show it in local client
             async function SubmitHandle() {
                 const dataInput = document.getElementById("dataInput");
-                if (!dataInput) {
-                    console.error("Input element 'dataInput' not found.");
-                    return;
-                }
-
-                const value = dataInput.value;
+                const value = dataInput.value.trim();
+                if (!value) return;
 
                 try {
-
-
                     const response = await fetch("/submit", {
                         method: "POST",
                         headers: {
@@ -50,63 +78,48 @@
                         },
                         body: JSON.stringify({ data: value })
                     });
-                    const text = await response.text();
-                    
-                    console.log(value);
 
-                    document.getElementById('dataInput').value = ''; // Clear the input after successful submission
-
+                    if (response.ok) {
+                        //addMessage(value); // Add your own message to chat
+                        dataInput.value = '';
+                    } else {
+                        console.error("Server responded with error");
+                    }
                 } catch (err) {
                     console.error("Fetch failed:", err);
                 }
             }
 
-            const dataInput = document.getElementById("dataInput");
-            if (dataInput) {
-            dataInput.addEventListener("keydown", function(event) {
-                // Check if the pressed key is 'Enter'
-                if (event.key === "Enter") {
-                    event.preventDefault(); // Prevent the default action (e.g., new line in some text areas)
-                    SubmitHandle(); // Invoke the submit function
-                }
+            // Intercept form submit
+            document.getElementById("text_msg").addEventListener("submit", function(e) {
+                e.preventDefault();
+                SubmitHandle();
             });
-        }
 
+            // Connect to ESP32 WebSocket server
+            const socket = new WebSocket("ws://" + location.hostname + ":81/");
 
+            socket.onopen = () => {
+                console.log("WebSocket connected!");
+            };
 
-        
-        function doSomething() {
-            console.log("Function was invoked from ESP32!");
-            // You can put any JS logic here (update UI, fetch data, etc)
-        }
+            socket.onerror = (error) => {
+                console.error("WebSocket Error:", error);
+            };
 
-        const socket = new WebSocket("ws://" + location.hostname + ":81/");
+            socket.onclose = () => {
+                console.warn("WebSocket connection closed");
+            };
 
-        socket.onopen = function() {
-            console.log("WebSocket connected!");
-        };
+            socket.onmessage = (event) => {
+                const msg = event.data;
+                console.log("WS Message:", msg);
+                addMessage(msg);
+            };
+        </script>
 
-        socket.onerror = function(error) {
-            console.error("WebSocket Error:", error);
-        };
-
-        socket.onclose = function() {
-            console.warn("WebSocket connection closed");
-        };
-
-        socket.onmessage = function(event) {
-            const msg = event.data;
-            console.log("WS Message:", msg);
-            if (msg === "CALL:doSomething") {
-                doSomething();
-            }
-        };
-
-    </script>
-
-    <noscript> 
-        <h1> <b>USE JAVASCRIPT GODDAMMIT! </b></h1>
-    </noscript>
-        
+        <noscript>
+            <h1><b>USE JAVASCRIPT GODDAMMIT!</b></h1>
+        </noscript>
     </body>
-</html> 
+</html>
